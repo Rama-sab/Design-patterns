@@ -4,7 +4,7 @@ package com.mycompany.app.system_for_events;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-    // The Product interface in the Factory pattern
+    // Factory pattern
   
 
 public class Event {
