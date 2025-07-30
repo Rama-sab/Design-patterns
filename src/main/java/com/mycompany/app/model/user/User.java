@@ -1,16 +1,17 @@
 
 
-package com.mycompany.app.user;
-
+package com.mycompany.app.model.user;
+import  com.mycompany.app.model.user.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.mycompany.app.system_for_events.Event;
+import com.mycompany.app.model.system_for_events.Event;
+
 
 
 
 
 // A Concrete Observer implementation
-public class User implements Subscriber {
+public class User implements Subscriber{
     static AtomicInteger nextId = new AtomicInteger();
     private int id ;
     private final String name;
