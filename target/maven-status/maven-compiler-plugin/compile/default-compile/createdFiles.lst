@@ -5,4 +5,8 @@ com\mycompany\app\controller\Main$NotificationHandler.class
 com\mycompany\app\model\user\User.class
 com\mycompany\app\model\user\Subscriber.class
 com\mycompany\app\model\system_for_events\Event.class
+com\mycompany\app\controller\AddEventHandler.class
+com\mycompany\app\model\system_for_events\EventDTO.class
 com\mycompany\app\model\system_for_events\EventManager.class
+com\mycompany\app\controller\AddEventHandler$1.class
+com\mycompany\app\controller\LocalDateTimeAdapter.class

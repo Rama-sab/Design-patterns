@@ -1,11 +1,13 @@
 package com.mycompany.app.controller;
 
-import java.io.*;
-import java.util.*;
-import java.lang.reflect.Type;
-import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mycompany.app.model.system_for_events.Event;
 
 public class schedule implements Runnable {
@@ -15,51 +17,53 @@ public class schedule implements Runnable {
         this.message = message;
     }
 
-    @Override
-    public void run() {
-        Event event = Event.create(message);
-        Main.eventList.add(event);
+@Override
+public void run() {
+    System.out.println("⚠️ run() method started");
 
-      
-        String folderPath = "src/main/java/com/mycompany/app/model/system_for_events";
-        String filePath = folderPath + "/event.json";
+    Event event = Event.create(message);
+    Main.eventList.add(event);           
+    System.out.println("New event: " + message + " at " + event.getTime());
 
-        try {
-           
-            java.nio.file.Path folder = java.nio.file.Paths.get(folderPath);
-            if (!java.nio.file.Files.exists(folder)) {
-                java.nio.file.Files.createDirectories(folder);
-                System.out.println("Created folder: " + folderPath);
-            }
+    String filePath = "src/main/java/com/mycompany/app/model/system_for_events/event.json";
 
-            
-            List<Event> events = new ArrayList<>();
-            File jsonFile = new File(filePath);
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    try {
+        // Step 1: Read existing events from file (if it exists)
+        List<Event> existingEvents = new ArrayList<>();
 
-            if (jsonFile.exists() && jsonFile.length() > 0) {
-                try (FileReader reader = new FileReader(jsonFile)) {
-                    Type eventListType = new TypeToken<List<Event>>(){}.getType();
-                    events = gson.fromJson(reader, eventListType);
-                    if (events == null) events = new ArrayList<>();
-                } catch (Exception e) {
-                    System.err.println("Error reading existing events: " + e);
-                    events = new ArrayList<>();
+        java.io.File file = new java.io.File(filePath);
+        if (file.exists()) {
+            try (java.io.FileReader reader = new java.io.FileReader(file)) {
+                Gson gson = new GsonBuilder()
+                        .registerTypeAdapter(java.time.LocalDateTime.class, new LocalDateTimeAdapter())
+                        .create();
+                java.lang.reflect.Type eventListType = new com.google.gson.reflect.TypeToken<List<Event>>() {}.getType();
+                existingEvents = gson.fromJson(reader, eventListType);
+                if (existingEvents == null) {
+                    existingEvents = new ArrayList<>();
                 }
             }
-
-            // Add new event
-            events.add(event);
-
-            // Write all events back to JSON file
-            try (FileWriter writer = new FileWriter(jsonFile)) {
-                gson.toJson(events, writer);
-                System.out.println("Saved event to " + jsonFile.getAbsolutePath());
-            }
-
-        } catch (IOException e) {
-            System.err.println("Error saving JSON: " + e);
-            e.printStackTrace();
         }
+
+        // Step 2: Add the new event to the list
+        existingEvents.add(event);
+
+        // Step 3: Write the updated list back to the file
+        try (FileWriter writer = new FileWriter(filePath)) {
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(java.time.LocalDateTime.class, new LocalDateTimeAdapter())
+                    .setPrettyPrinting()
+                    .create();
+            gson.toJson(existingEvents, writer);
+            System.out.println("✅ Appended and saved to: " + filePath);
+        }
+
+    } catch (IOException e) {
+        System.err.println("❌ Failed to read/write JSON:");
+        e.printStackTrace();
     }
 }
+
+
+}
+

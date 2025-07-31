@@ -24,15 +24,22 @@ public class Main {
         everyTenEvent.startGeneratingEvents();
 
         startHttpServer();
+        
     }
 
     private static void startHttpServer() throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-        server.createContext("/api/notifications", new NotificationHandler());
-        server.setExecutor(Executors.newFixedThreadPool(2));
-        server.start();
-        System.out.println("HTTP server started at http://localhost:8080");
-    }
+    HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+    server.createContext("/api/notifications", new NotificationHandler());
+    server.createContext("/api/addevent", new AddEventHandler());
+
+    System.out.println("✅ Server contexts created:");
+    System.out.println("  - /api/notifications (GET)");
+    System.out.println("  - /api/addevent (POST)");
+
+    server.setExecutor(Executors.newFixedThreadPool(2));
+    server.start();
+    System.out.println("🚀 HTTP server started at http://localhost:8080");
+}
 
     static class NotificationHandler implements HttpHandler {
    @Override

@@ -3,17 +3,15 @@ package com.mycompany.app.model.system_for_events;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
   
 
 public class Event {
     private final String name;
-   private final List<Integer> Categories;
+   private final int Categories;
   private  final LocalDateTime timestamp;
 
-    private Event(String name_e ,List<Integer> filter_e) {
+    private Event(String name_e ,int filter_e) {
         this.name =name_e;
         this.timestamp=LocalDateTime.now();
         this.Categories= filter_e;
@@ -23,17 +21,20 @@ public class Event {
     /*public string getFilter() {
         return filter;
     }*/
+   public int getCategoryId(){
+return Categories ;
+   }
 public  LocalDateTime gettimestamp() {
         return timestamp;}
 
     public  String getname() {
         return name;}
 public static Event create(String name_e) {
-        List<Integer> defaultCategory = new ArrayList<>();
-        defaultCategory.add(0);
+        int defaultCategory =0;
+        
         return new Event(name_e, defaultCategory);
     }
-     public static Event create(String name_e, List<Integer> categories) {
+     public static Event create(String name_e, int categories) {
         return new Event(name_e, categories);
     }
   public String getData(){
