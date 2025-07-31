@@ -1,12 +1,12 @@
 package com.mycompany.app.controller;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
 public class EventJsonHandler implements HttpHandler {
 
@@ -22,7 +22,7 @@ public class EventJsonHandler implements HttpHandler {
         }
 
         // JSON file path
-        Path path = Paths.get("C:/Users/rama.sabboubeh/Desktop/Design-patterns/src/main/java/com/mycompany/app/model/system_for_events/addevent.json");
+        Path path = Paths.get("src\\main\\java\\com\\mycompany\\app\\model\\system_for_events\\addevent.json");
         byte[] jsonData = Files.readAllBytes(path);
 
         exchange.sendResponseHeaders(200, jsonData.length);
