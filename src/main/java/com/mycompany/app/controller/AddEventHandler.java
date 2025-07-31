@@ -12,11 +12,9 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 public class AddEventHandler implements HttpHandler {
-
-    // A minimal Gson instance just for parsing the request body
+ 
     private static final Gson gson = new GsonBuilder().create();
 
-    // A simple class to represent the incoming JSON data structure
     static class EventData {
         String name;
         int category;
@@ -42,15 +40,14 @@ public class AddEventHandler implements HttpHandler {
 
             EventData requestData = gson.fromJson(body, EventData.class);
 
-            // 2. Create a new Event and add it to the shared list in Main
             Event newEvent = Event.create(requestData.name, requestData.category);
             Main.eventList.add(newEvent);
             System.out.println("📥 Event received via API: " + newEvent.getname());
 
-            // 3. Trigger an immediate save of the entire list
+           
             Main.saveEventsToJson();
 
-            // 4. Send a success response
+           
             String response = "✅ Event saved!";
             exchange.sendResponseHeaders(200, response.getBytes().length);
             OutputStream os = exchange.getResponseBody();

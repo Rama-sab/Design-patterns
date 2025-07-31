@@ -1,4 +1,4 @@
-package com.mycompany.app;
+package com.a.java.app;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

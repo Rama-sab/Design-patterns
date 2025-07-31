@@ -15,7 +15,7 @@ public class EventManager {
     private EventManager() {
         scheduler =  Executors.newScheduledThreadPool(1) ; 
     }
-//synchronized for ---> No thread interference
+
     public static synchronized EventManager getInstance() {
         if (instance == null) {
             instance = new EventManager();

@@ -26,17 +26,17 @@ public class UserManager {
         return null;
     }
 
-    // Get the currently logged-in user
+    
     public static User getCurrentUser() {
         return currentUser;
     }
 
-    // Log out
+    
     public static void logout() {
         currentUser = null;
     }
 
-    // Get all users
+    
     public static List<User> getUsers() {
         return users;
     }
