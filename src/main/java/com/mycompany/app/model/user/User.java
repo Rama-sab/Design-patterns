@@ -13,12 +13,12 @@ import com.mycompany.app.model.system_for_events.Event;
 // A Concrete Observer implementation
 public class User implements Subscriber{
     static AtomicInteger nextId = new AtomicInteger();
-    private int id ;
+    private char id ;
     private final String name;
    // private string[] fav
-    public User(String name) {
+    public User(String name,char id) {
         this.name = name;
-        this.id = nextId.incrementAndGet();
+        this.id = id;
     }
 
    
