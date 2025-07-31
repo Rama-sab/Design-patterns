@@ -1,11 +1,12 @@
 package com.mycompany.app.controller;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.Writer;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
@@ -36,9 +37,13 @@ import com.sun.net.httpserver.HttpServer;
 
 public class Main {
 
+    // This list is the single source of truth for your application's state
     public static List<Event> eventList = Collections.synchronizedList(new ArrayList<>());
+    
+    // The path to your JSON file. Must be the same as in AddEventHandler.
     private static final String FILE_PATH = "src/main/java/com/mycompany/app/model/system_for_events/addevent.json";
 
+    // A single Gson instance for the whole application to handle JSON conversion
     private static final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
@@ -46,17 +51,17 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         System.out.println("🔄 Starting Event Scheduler...");
-
+        
         // 1. Load existing events from the file into memory
         loadEventsFromJson();
-
+        
         // This can be removed if you are only adding events via the API
         EventManager eventManager = EventManager.getInstance();
         eventManager.startGeneratingEvents();
 
         // 2. Start the server
         startHttpServer();
-    }
+    } 
 
     private static void startHttpServer() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
@@ -64,6 +69,7 @@ public class Main {
         // Register endpoints
         server.createContext("/api/notifications", new NotificationHandler()); // GET
         server.createContext("/api/add-event", new AddEventHandler());      // POST
+            server.createContext("/api/login", new LoginHandler());
 
         System.out.println("✅ Server endpoints registered:");
         System.out.println("   - [GET]  /api/notifications");
@@ -73,6 +79,8 @@ public class Main {
         server.start();
 
         System.out.println("🚀 HTTP Server started at http://localhost:8080 with " + eventList.size() + " events loaded.");
+    
+    
     }
 
     /**
@@ -82,9 +90,11 @@ public class Main {
         File jsonFile = new File(FILE_PATH);
         if (jsonFile.exists() && jsonFile.length() > 0) {
             try (Reader reader = new InputStreamReader(new FileInputStream(jsonFile), StandardCharsets.UTF_8)) {
+                // Define the type for a list of Events
                 Type listType = new TypeToken<ArrayList<Event>>() {}.getType();
                 List<Event> loadedEvents = gson.fromJson(reader, listType);
                 if (loadedEvents != null) {
+                    // Safely add all loaded events to our synchronized list
                     eventList.addAll(loadedEvents);
                 }
             } catch (IOException e) {
@@ -101,6 +111,7 @@ public class Main {
     static class NotificationHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            // Use Gson to convert the entire list to a JSON string
             String jsonResponse = gson.toJson(Main.eventList);
 
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -130,7 +141,6 @@ public class Main {
             return LocalDateTime.parse(json.getAsString(), formatter);
         }
     }
-
     public static void saveEventsToJson() {
         File jsonFile = new File(FILE_PATH);
 
@@ -139,8 +149,7 @@ public class Main {
             jsonFile.getParentFile().mkdirs();
         }
 
-        try (OutputStreamWriter writer = new OutputStreamWriter(
-                new FileOutputStream(jsonFile, false), StandardCharsets.UTF_8)) {
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(jsonFile, false), StandardCharsets.UTF_8)) {
             gson.toJson(eventList, writer);
         } catch (IOException e) {
             System.out.println("⚠️ Could not save events to file: " + e.getMessage());
