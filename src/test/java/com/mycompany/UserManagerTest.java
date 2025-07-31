@@ -1,7 +1,8 @@
-package com.mycompany.app.model.user;
+package com.mycompany;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import com.mycompany.app.model.user.*;
 
 class UserManagerTest {
 
