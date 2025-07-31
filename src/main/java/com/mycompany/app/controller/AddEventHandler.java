@@ -10,7 +10,6 @@ import com.google.gson.GsonBuilder;
 import com.mycompany.app.model.system_for_events.Event;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import com.mycompany.app.controller.Main;
 
 public class AddEventHandler implements HttpHandler {
 
@@ -35,9 +34,12 @@ public class AddEventHandler implements HttpHandler {
         }
 
         if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-            // 1. Parse incoming request body
+            // 1. Parse incoming request body (Java 8 compatible)
             InputStream is = exchange.getRequestBody();
-            String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            java.util.Scanner s = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A");
+            String body = s.hasNext() ? s.next() : "";
+            s.close();
+
             EventData requestData = gson.fromJson(body, EventData.class);
 
             // 2. Create a new Event and add it to the shared list in Main

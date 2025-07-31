@@ -4,6 +4,7 @@ com\mycompany\app\controller\Main.class
 com\mycompany\app\model\user\User.class
 com\mycompany\app\model\system_for_events\Event.class
 com\mycompany\app\controller\AddEventHandler$EventData.class
+com\mycompany\app\controller\EventJsonHandler.class
 com\mycompany\app\controller\AddEventHandler.class
 com\mycompany\app\controller\Main$1.class
 com\mycompany\app\controller\Main$NotificationHandler.class

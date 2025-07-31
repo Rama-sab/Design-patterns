@@ -1,10 +1,13 @@
 package com.mycompany.app.controller;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -33,13 +36,9 @@ import com.sun.net.httpserver.HttpServer;
 
 public class Main {
 
-    // This list is the single source of truth for your application's state
     public static List<Event> eventList = Collections.synchronizedList(new ArrayList<>());
-    
-    // The path to your JSON file. Must be the same as in AddEventHandler.
     private static final String FILE_PATH = "src/main/java/com/mycompany/app/model/system_for_events/addevent.json";
 
-    // A single Gson instance for the whole application to handle JSON conversion
     private static final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
@@ -47,10 +46,10 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         System.out.println("🔄 Starting Event Scheduler...");
-        
+
         // 1. Load existing events from the file into memory
         loadEventsFromJson();
-        
+
         // This can be removed if you are only adding events via the API
         EventManager eventManager = EventManager.getInstance();
         eventManager.startGeneratingEvents();
@@ -82,12 +81,10 @@ public class Main {
     private static void loadEventsFromJson() {
         File jsonFile = new File(FILE_PATH);
         if (jsonFile.exists() && jsonFile.length() > 0) {
-            try (Reader reader = new FileReader(jsonFile, StandardCharsets.UTF_8)) {
-                // Define the type for a list of Events
+            try (Reader reader = new InputStreamReader(new FileInputStream(jsonFile), StandardCharsets.UTF_8)) {
                 Type listType = new TypeToken<ArrayList<Event>>() {}.getType();
                 List<Event> loadedEvents = gson.fromJson(reader, listType);
                 if (loadedEvents != null) {
-                    // Safely add all loaded events to our synchronized list
                     eventList.addAll(loadedEvents);
                 }
             } catch (IOException e) {
@@ -104,7 +101,6 @@ public class Main {
     static class NotificationHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            // Use Gson to convert the entire list to a JSON string
             String jsonResponse = gson.toJson(Main.eventList);
 
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -132,6 +128,22 @@ public class Main {
         @Override
         public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             return LocalDateTime.parse(json.getAsString(), formatter);
+        }
+    }
+
+    public static void saveEventsToJson() {
+        File jsonFile = new File(FILE_PATH);
+
+        // Ensure the parent directories exist
+        if (!jsonFile.getParentFile().exists()) {
+            jsonFile.getParentFile().mkdirs();
+        }
+
+        try (OutputStreamWriter writer = new OutputStreamWriter(
+                new FileOutputStream(jsonFile, false), StandardCharsets.UTF_8)) {
+            gson.toJson(eventList, writer);
+        } catch (IOException e) {
+            System.out.println("⚠️ Could not save events to file: " + e.getMessage());
         }
     }
 }
