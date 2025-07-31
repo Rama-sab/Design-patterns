@@ -1,129 +1,62 @@
 package com.mycompany.app.controller;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mycompany.app.model.system_for_events.Event;
-import com.mycompany.app.model.system_for_events.EventDTO;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import com.mycompany.app.controller.Main;
 
 public class AddEventHandler implements HttpHandler {
 
-    private static final String FILE_PATH = "src/main/java/com/mycompany/app/model/system_for_events/event.json";
+    // A minimal Gson instance just for parsing the request body
+    private static final Gson gson = new GsonBuilder().create();
+
+    // A simple class to represent the incoming JSON data structure
+    static class EventData {
+        String name;
+        int category;
+    }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        // CORS
+        // Handle CORS preflight requests for browser compatibility
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
-        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
-
         if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
             exchange.sendResponseHeaders(204, -1);
             return;
         }
 
-        if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-            exchange.sendResponseHeaders(405, -1);
-            return;
-        }
+        if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+            // 1. Parse incoming request body
+            InputStream is = exchange.getRequestBody();
+            String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            EventData requestData = gson.fromJson(body, EventData.class);
 
-        try {
-            // Read and parse event from request
-            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            System.out.println("📥 Raw request body: " + body);
-            
-            Gson gson = new Gson();
-            EventDTO dto = gson.fromJson(body, EventDTO.class);
-            
-            if (dto == null) {
-                System.err.println("❌ Failed to parse JSON - dto is null");
-                sendErrorResponse(exchange, "Invalid JSON format");
-                return;
-            }
-            
-            if (dto.name == null || dto.name.trim().isEmpty()) {
-                System.err.println("❌ Event name is null or empty");
-                sendErrorResponse(exchange, "Event name is required");
-                return;
-            }
-
-            // Create event and add to memory
-            Event newEvent = Event.create(dto.name, dto.categoryId);
+            // 2. Create a new Event and add it to the shared list in Main
+            Event newEvent = Event.create(requestData.name, requestData.category);
             Main.eventList.add(newEvent);
+            System.out.println("📥 Event received via API: " + newEvent.getname());
 
-            // Save to file
-            saveEventsToFile(newEvent);
+            // 3. Trigger an immediate save of the entire list
+            Main.saveEventsToJson();
 
-            System.out.println("📥 Received from frontend:");
-            System.out.println("  name: " + dto.name);
-            System.out.println("  categoryId: " + dto.categoryId);
-            System.out.println("✅ Saving event to JSON: " + newEvent.toString());
-
-            
-            String response = "{\"status\":\"success\"}";
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            // 4. Send a success response
+            String response = "✅ Event saved!";
             exchange.sendResponseHeaders(200, response.getBytes().length);
-
-            try (OutputStream os = exchange.getResponseBody()) {
-                os.write(response.getBytes());
-            }
-            
-        } catch (Exception e) {
-            System.err.println("❌ Error handling request: " + e.getMessage());
-            e.printStackTrace();
-            sendErrorResponse(exchange, "Internal server error: " + e.getMessage());
-        }
-    }
-
-    private void sendErrorResponse(HttpExchange exchange, String message) throws IOException {
-        String errorResponse = "{\"status\":\"error\",\"message\":\"" + message + "\"}";
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(400, errorResponse.getBytes().length);
-        
-        try (OutputStream os = exchange.getResponseBody()) {
-            os.write(errorResponse.getBytes());
-        }
-    }
-
-    private void saveEventsToFile(Event newEvent) throws IOException {
-        File file = new File(FILE_PATH);
-        file.getParentFile().mkdirs();
-
-        List<Event> events;
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-        if (file.exists()) {
-            // Load existing events from file
-            try (java.io.FileReader reader = new java.io.FileReader(file)) {
-                java.lang.reflect.Type eventListType = new com.google.gson.reflect.TypeToken<List<Event>>(){}.getType();
-                events = gson.fromJson(reader, eventListType);
-                if (events == null) events = new java.util.ArrayList<>();
-            } catch (Exception e) {
-                System.err.println("❌ Error reading existing events file: " + e.getMessage());
-                events = new java.util.ArrayList<>();
-            }
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
         } else {
-            events = new java.util.ArrayList<>();
-        }
-
-        // Add new event to the list
-        events.add(newEvent);
-
-        // Write back the updated list
-        try (FileWriter writer = new FileWriter(file)) {
-            gson.toJson(events, writer);
-            System.out.println("✅ Events saved to file: " + FILE_PATH);
-        } catch (Exception e) {
-            System.err.println("❌ Error writing events to file: " + e.getMessage());
-            throw e;
+            // Handle incorrect HTTP methods (e.g., GET, PUT)
+            exchange.sendResponseHeaders(405, -1); // 405 Method Not Allowed
         }
     }
 }

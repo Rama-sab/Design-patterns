@@ -17,14 +17,14 @@ public class schedule implements Runnable {
         this.message = message;
     }
 
-@Override
-public void run() {
+    @Override
+    public void run() {
     System.out.println("⚠️ run() method started");
 
-    Event event = Event.create(message);
-    Main.eventList.add(event);           
+        Event event = Event.create(message);
+        Main.eventList.add(event);
     System.out.println("New event: " + message + " at " + event.getTime());
-
+      
     String filePath = "src/main/java/com/mycompany/app/model/system_for_events/event.json";
 
     try {
@@ -42,8 +42,8 @@ public void run() {
                 if (existingEvents == null) {
                     existingEvents = new ArrayList<>();
                 }
+                }
             }
-        }
 
         // Step 2: Add the new event to the list
         existingEvents.add(event);
@@ -56,13 +56,13 @@ public void run() {
                     .create();
             gson.toJson(existingEvents, writer);
             System.out.println("✅ Appended and saved to: " + filePath);
-        }
+            }
 
-    } catch (IOException e) {
+        } catch (IOException e) {
         System.err.println("❌ Failed to read/write JSON:");
-        e.printStackTrace();
+            e.printStackTrace();
+        }
     }
-}
 
 
 }
