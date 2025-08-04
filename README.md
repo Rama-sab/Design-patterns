@@ -72,7 +72,7 @@ The system follows an **Observer Pattern** combined with **Event-Driven Architec
   - Optional for null safety
   - LocalDateTime for time handling
 - **Multithreading/Concurrency** - Parallel event processing
-- **Design Patterns** - singleton, MVC patterns
+- **Design Patterns** -  singleton, MVC and observer  pattern
 
 ## 🚀 How to Run the Application
 

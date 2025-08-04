@@ -42,13 +42,13 @@ public class AddEventHandler implements HttpHandler {
 
             Event newEvent = Event.create(requestData.name, requestData.category);
             Main.eventList.add(newEvent);
-            System.out.println("📥 Event received via API: " + newEvent.getname());
+            System.out.println(" Event received via API: " + newEvent.getname());
 
            
             Main.saveEventsToJson();
 
            
-            String response = "✅ Event saved!";
+            String response = "Event saved!";
             exchange.sendResponseHeaders(200, response.getBytes().length);
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
