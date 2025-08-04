@@ -237,6 +237,18 @@
   <div class="notification" id="notificationToast"></div>
 
   <script>
+
+    if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+  window.WebSocket = function() {
+    console.log('WebSocket disabled for Live Server');
+    return {
+      onmessage: function() {},
+      onerror: function() {},
+      onopen: function() {},
+      onclose: function() {}
+    };
+  };
+}
     const categories = [
       { id: 0, name: 'Alert', icon: '🔔', desc: 'just the important' },
       { id: 1, name: 'Technology', icon: '💻', desc: 'Tech news & updates' },
@@ -256,6 +268,7 @@
 let userStartHour = 0;     
 let userEndHour = 24;     
 
+    let refreshInterval;
 
 function selectRole(role) {
   currentRole = role;
@@ -505,7 +518,7 @@ function refreshCSS() {
         `;
       }).join('');
     }
-
+/*
     function fetchNotificationsFromBackend() {
       fetch('http://localhost:8080/api/notifications')
         .then(res => res.json())
@@ -517,7 +530,60 @@ function refreshCSS() {
         .catch(() => {
           document.getElementById('notificationsList').innerHTML = '<div class="empty-state">Failed to load notifications</div>';
         });
-    }
+    }*/
+    function stopAutoRefresh() {
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
+    refreshInterval = null;
+    console.log('⏹️ Auto-refresh stopped');
+  }
+}
+
+
+function fetchNotificationsFromBackend() {
+  fetch('http://localhost:8080/api/notifications')
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      const oldCount = notifications.length;
+      notifications = data;
+      
+      // Show notification if new events were added
+      if (data.length > oldCount) {
+        const newCount = data.length - oldCount;
+        showNotification(`🔔 ${newCount} new notification${newCount > 1 ? 's' : ''} received!`);
+      }
+      
+      renderNotifications();
+      if (currentRole === 'admin') renderAllEvents();
+      
+      console.log(`✅ Loaded ${data.length} notifications`);
+    })
+    .catch(error => {
+      console.error('❌ Failed to fetch notifications:', error);
+      document.getElementById('notificationsList').innerHTML = 
+        '<div class="empty-state">❌ Failed to load notifications. Retrying...</div>';
+    });
+}
+function startAutoRefresh() {
+  // Clear any existing interval
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
+  }
+  
+  // Set up auto-refresh every 5 seconds
+  refreshInterval = setInterval(() => {
+    console.log('🔄 Auto-refreshing notifications...');
+    fetchNotificationsFromBackend();
+  }, 5000); // 5 seconds
+  
+  console.log('✅ Auto-refresh started (every 5 seconds)');
+}
+
+
+
 function sendEventToBackend(eventName, categoryId) {
   fetch("http://localhost:8080/api/add-event", {
     method: "POST",
@@ -542,6 +608,9 @@ function sendEventToBackend(eventName, categoryId) {
       document.getElementById('roleSelection').style.display = 'block';
       fetchNotificationsFromBackend();
       //setInterval(fetchNotificationsFromBackend, 5000);
+  
+ 
+  startAutoRefresh();
     });
   </script>
 </body>
