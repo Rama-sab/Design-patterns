@@ -455,11 +455,14 @@ function submitNewEvent() {
   const { date, time, timestamp } = getFormattedDateTime();
   const newEvent = {
     name: message,
+    
     categoryId: parseInt(selectedCategoryInput.value)
   };
 
   notifications.push({
-    ...newEvent, date, time, timestamp
+     name: message,
+    
+    categoryId: parseInt(selectedCategoryInput.value), date, time, timestamp
   });
 
   renderNotifications();
