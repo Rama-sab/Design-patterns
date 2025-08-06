@@ -74,7 +74,7 @@ The system follows an **Observer Pattern** combined with **Event-Driven Architec
 - **Multithreading/Concurrency** - Parallel event processing
 - **Design Patterns** -  singleton, MVC and observer  pattern
 
-## 🚀 How to Run the Application
+##  How to Run the Application
 
 ### Prerequisites
 - Java 17 or higher
