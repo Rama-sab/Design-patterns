@@ -4,7 +4,7 @@
 
 This project implements a modular event-driven notification system designed to handle real-time notifications similar to systems like Google Calendar. The system allows multiple entities (users, services, components) to publish events, subscribe to specific event types, and receive notifications when those events occur.
 
-The system serves as backend logic for an extensible event infrastructure that can be used by different teams or modules in a distributed environment.
+The system serves as backend logic for an extensible event infrastructure that can be used by different teams or modules in a  distributed environment.
 
 ##  System Design
 
